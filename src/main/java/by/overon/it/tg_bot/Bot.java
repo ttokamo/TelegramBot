@@ -31,24 +31,28 @@ public class Bot extends TelegramLongPollingBot {
     @Override
     // Метод, который вызывается при запросе пользователя
     public void onUpdateReceived(Update update) {
-        // Получаем текст сообщения
-        // Проверяем на содержание "/start" и в случае "true" отправляем ответ пользователю
+        // Проверяем на наличие сообщения
         if (update.hasMessage()) {
             String message = update.getMessage().getText();
             if (message != null) {
+                // Проверяем на содержание "/start" и в случае "true" отправляем ответ пользователю
                 if (message.startsWith("/start")) {
                     try {
+                        // Отправляем приветственное меню
                         execute(showGreetingMenu(update.getMessage().getChatId().toString()));
                     } catch (TelegramApiException e) {
                         e.printStackTrace();
                     }
                 }
             }
-        } else if (update.hasCallbackQuery()) {
+        }
+        // Проверяем на наличие нажатой кнопки
+        else if (update.hasCallbackQuery()) {
+            // Проверяем полученное значение кнопки
             if (update.getCallbackQuery().getData().startsWith("1")) {
                 try {
-                    SendMessage sendMessage = askAboutBrand(update.getCallbackQuery().getMessage().getChatId().toString());
-                    execute(sendMessage);
+                    // Отправляем сообщение в зависимости от значения кнопки
+                    execute(askAboutBrand(update.getCallbackQuery().getMessage().getChatId().toString()));
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
                 }
@@ -58,13 +62,18 @@ public class Bot extends TelegramLongPollingBot {
 
     // Метод, отвечающий за вывод приветственного меню. Содержит в себе текст и 3 кнопки
     private SendMessage showGreetingMenu(String chatId) {
-        InlineKeyboardButton createAd = new InlineKeyboardButton();  // Создаем кнопку, которая отвечает за создание объявлений
-        createAd.setText("Создать объявление");  // Присваиваем кнопке текст
-        createAd.setCallbackData("1"); // Устанаваливаем значение, которое придет после нажатия кнопки (Обязательно! Иначе Exception)
-        InlineKeyboardButton showAd = new InlineKeyboardButton(); // Создаем кнопку, которая отвечает за показ объявлений
+        // Создаем кнопку, которая отвечает за создание объявлений
+        InlineKeyboardButton createAd = new InlineKeyboardButton();
+        // Присваиваем кнопке текст
+        createAd.setText("Создать объявление");
+        // Устанаваливаем значение, которое придет после нажатия кнопки (Обязательно! Иначе Exception)
+        createAd.setCallbackData("1");
+        // Создаем кнопку, которая отвечает за показ всех объявлений
+        InlineKeyboardButton showAd = new InlineKeyboardButton();
         showAd.setText("Показать объявления");
         showAd.setCallbackData("2");
-        InlineKeyboardButton myAd = new InlineKeyboardButton(); // Создаем кнопкуб, которая отвечает за показ моих объявлений
+        // Создаем кнопку, которая отвечает за показ собственных сообщений объявлений
+        InlineKeyboardButton myAd = new InlineKeyboardButton();
         myAd.setText("Мои объявления");
         myAd.setCallbackData("3");
 
@@ -72,27 +81,30 @@ public class Bot extends TelegramLongPollingBot {
         List<InlineKeyboardButton> firstRow = new ArrayList<>();
         List<InlineKeyboardButton> secondRow = new ArrayList<>();
 
-        // В первом ряду 2 кнопки, а во втором 1
+        // Раскидываем кнопки по рядам. В данном случае в первом ряду 2 кнопки, а во втором 1
         firstRow.add(createAd);
         firstRow.add(showAd);
         secondRow.add(myAd);
 
-        //Объеденяем кнопки в одно целое для отправки
+        // Объеденяем кнопки в одно целое для отправки
         List<List<InlineKeyboardButton>> inlineButtons = new ArrayList<>(List.of(
                 firstRow,
                 secondRow
         ));
 
-        //Создаем и устанавливаем разметку
+        // Создаем и устанавливаем разметку для кнопок
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(inlineButtons);
 
         SendMessage sendMessage = createMessage(chatId, "Тест");
-        sendMessage.setReplyMarkup(markup); // Устанавливаем разметку
-        return sendMessage; // Возвращаем наше сообщение
+        // Устанавливаем наш тип кнопки для сообщения
+        sendMessage.setReplyMarkup(markup);
+        // Возвращаем наше сообщение с кнопками
+        return sendMessage;
     }
 
-    public SendMessage createMessage(String chatId, String text) {
+    // Приватный метод для создания объекта SendMessage
+    private SendMessage createMessage(String chatId, String text) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setText(text);
         sendMessage.setChatId(chatId);
