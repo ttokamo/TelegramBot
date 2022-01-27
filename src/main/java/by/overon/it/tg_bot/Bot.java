@@ -1,13 +1,21 @@
 package by.overon.it.tg_bot;
 
+import lombok.SneakyThrows;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public class Bot extends TelegramLongPollingBot {
 
@@ -18,23 +26,55 @@ public class Bot extends TelegramLongPollingBot {
         super(defaultBotOptions);
     }
 
-    public synchronized void sendMessage(String chatId, String message) {
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.enableMarkdown(true);
-        sendMessage.setChatId(chatId);
-        sendMessage.setText(message);
+    @Override
+    @SneakyThrows
+    // Метод, который вызывается при запросе пользователя
+    public void onUpdateReceived(Update update) {
+        // Получаем текст сообщения
+        String message = update.getMessage().getText();
 
-        try {
-            execute(sendMessage);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
+        // Проверяем на содержание "/start" и в случае "true" отправляем ответ пользователю
+        if (message.startsWith("/start")) {
+            execute(showGreetingMenu(update.getMessage().getChatId().toString()));
         }
     }
 
-    @Override
-    public void onUpdateReceived(Update update) {
-        String message = update.getMessage().getText();
-        sendMessage(update.getMessage().getChatId().toString(), message);
+    // Метод, отвечающий за вывод приветственного меню. Содержит в себе текст и 3 кнопки
+    private SendMessage showGreetingMenu(String chatId) {
+        InlineKeyboardButton setAd = new InlineKeyboardButton();  // Создаем кнопку, которая отвечает за создание объявлений
+        setAd.setText("Создать объявление");  // Присваиваем кнопке текст
+        setAd.setCallbackData("1"); // Устанаваливаем значение, которое придет после нажатия кнопки (Обязательно! Иначе Exception)
+        InlineKeyboardButton showAd = new InlineKeyboardButton(); // Создаем кнопку, которая отвечает за показ объявлений
+        showAd.setText("Показать объявления");
+        showAd.setCallbackData("2");
+        InlineKeyboardButton myAd = new InlineKeyboardButton(); // Создаем кнопкуб, которая отвечает за показ моих объявлений
+        myAd.setText("Мои объявления");
+        myAd.setCallbackData("3");
+
+        // Создаем 2 ряда кнопок
+        List<InlineKeyboardButton> firstRow = new ArrayList<>();
+        List<InlineKeyboardButton> secondRow = new ArrayList<>();
+
+        // В первом ряду 2 кнопки, а во втором 1
+        firstRow.add(setAd);
+        firstRow.add(showAd);
+        secondRow.add(myAd);
+
+        //Объеденяем кнопки в одно целое для отправки
+        List<List<InlineKeyboardButton>> inlineButtons = new ArrayList<>(List.of(
+                firstRow,
+                secondRow
+        ));
+
+        //Создаем и устанавливаем разметку
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        markup.setKeyboard(inlineButtons);
+
+        SendMessage sendMessage = new SendMessage(); // Создаем сообщение
+        sendMessage.setText("Тест"); // Устанавливаем текст сообщения, который будет выводится над кнопками
+        sendMessage.setChatId(chatId); // Указываем ID чата, который получаем через параметры метода
+        sendMessage.setReplyMarkup(markup); // Устанавливаем разметку
+        return sendMessage; // Возвращаем наше сообщение
     }
 
     @Override
