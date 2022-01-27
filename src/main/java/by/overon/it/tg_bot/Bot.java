@@ -1,6 +1,9 @@
 package by.overon.it.tg_bot;
 
+import by.overon.it.repository.CarsAdsRepository;
 import lombok.SneakyThrows;
+import org.aspectj.bridge.MessageHandler;
+import org.springframework.cache.annotation.Cacheable;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -21,6 +24,7 @@ public class Bot extends TelegramLongPollingBot {
 
     private final String BOT_NAME = "test_bot";
     private final String BOT_TOKEN = "5153744354:AAFufvHy_I6mTRVLQ8slD0ge8s_JA7oF6Og";
+    private SendMessage sendMessage;
 
     public Bot(DefaultBotOptions defaultBotOptions) {
         super(defaultBotOptions);
@@ -36,14 +40,18 @@ public class Bot extends TelegramLongPollingBot {
         // Проверяем на содержание "/start" и в случае "true" отправляем ответ пользователю
         if (message.startsWith("/start")) {
             execute(showGreetingMenu(update.getMessage().getChatId().toString()));
+        } else if (update.hasCallbackQuery()) {
+            if(update.getCallbackQuery().getData().startsWith("1")) {
+
+            }
         }
     }
 
     // Метод, отвечающий за вывод приветственного меню. Содержит в себе текст и 3 кнопки
     private SendMessage showGreetingMenu(String chatId) {
-        InlineKeyboardButton setAd = new InlineKeyboardButton();  // Создаем кнопку, которая отвечает за создание объявлений
-        setAd.setText("Создать объявление");  // Присваиваем кнопке текст
-        setAd.setCallbackData("1"); // Устанаваливаем значение, которое придет после нажатия кнопки (Обязательно! Иначе Exception)
+        InlineKeyboardButton createAd = new InlineKeyboardButton();  // Создаем кнопку, которая отвечает за создание объявлений
+        createAd.setText("Создать объявление");  // Присваиваем кнопке текст
+        createAd.setCallbackData("1"); // Устанаваливаем значение, которое придет после нажатия кнопки (Обязательно! Иначе Exception)
         InlineKeyboardButton showAd = new InlineKeyboardButton(); // Создаем кнопку, которая отвечает за показ объявлений
         showAd.setText("Показать объявления");
         showAd.setCallbackData("2");
@@ -56,7 +64,7 @@ public class Bot extends TelegramLongPollingBot {
         List<InlineKeyboardButton> secondRow = new ArrayList<>();
 
         // В первом ряду 2 кнопки, а во втором 1
-        firstRow.add(setAd);
+        firstRow.add(createAd);
         firstRow.add(showAd);
         secondRow.add(myAd);
 
@@ -70,12 +78,19 @@ public class Bot extends TelegramLongPollingBot {
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(inlineButtons);
 
-        SendMessage sendMessage = new SendMessage(); // Создаем сообщение
+        sendMessage = new SendMessage(); // Создаем сообщение
         sendMessage.setText("Тест"); // Устанавливаем текст сообщения, который будет выводится над кнопками
         sendMessage.setChatId(chatId); // Указываем ID чата, который получаем через параметры метода
         sendMessage.setReplyMarkup(markup); // Устанавливаем разметку
         return sendMessage; // Возвращаем наше сообщение
     }
+
+
+    public SendMessage askAboutBrand(String chatId) {
+
+    }
+
+
 
     @Override
     public String getBotUsername() {
