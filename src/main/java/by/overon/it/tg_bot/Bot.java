@@ -30,7 +30,7 @@ public class Bot extends TelegramLongPollingBot {
                 // Проверяем на содержание "/start" и в случае "true" отправляем ответ пользователю
                 if (message.startsWith("/start")) {
                     // Отправляем приветственное меню
-                    execute(showGreetingMenu(update.getMessage().getChatId().toString()));
+                    showGreetingMenu(update.getMessage().getChatId().toString());
                 }
             }
         }
@@ -39,13 +39,14 @@ public class Bot extends TelegramLongPollingBot {
             // Проверяем полученное значение кнопки
             if (update.getCallbackQuery().getData().startsWith("1")) {
                 // Отправляем сообщение в зависимости от значения кнопки
-                execute(askAboutBrand(update.getCallbackQuery().getMessage().getChatId().toString()));
+                askAboutBrand(update.getCallbackQuery().getMessage().getChatId().toString());
             }
         }
     }
 
+    @SneakyThrows
     // Метод, отвечающий за вывод приветственного меню. Содержит в себе текст и 3 кнопки
-    private SendMessage showGreetingMenu(String chatId) {
+    private void showGreetingMenu(String chatId) {
         // Создаем кнопку, которая отвечает за создание объявлений
         InlineKeyboardButton createAd = new InlineKeyboardButton();
         // Присваиваем кнопке текст
@@ -84,7 +85,7 @@ public class Bot extends TelegramLongPollingBot {
         // Устанавливаем наш тип кнопки для сообщения
         sendMessage.setReplyMarkup(markup);
         // Возвращаем наше сообщение с кнопками
-        return sendMessage;
+        execute(sendMessage);
     }
 
     // Приватный метод для создания объекта SendMessage
@@ -95,13 +96,14 @@ public class Bot extends TelegramLongPollingBot {
         return sendMessage;
     }
 
-
-    public SendMessage askAboutBrand(String chatId) {
-        return createMessage(chatId, "Введите бренд автомобиля");
+    @SneakyThrows
+    public void askAboutBrand(String chatId) {
+        execute(createMessage(chatId, "Введите бренд автомобиля"));
     }
 
-    public SendMessage askAboutModel(String chatId) {
-        return createMessage(chatId, "Введите модель");
+    @SneakyThrows
+    public void askAboutModel(String chatId) {
+        execute(createMessage(chatId, "Введите модель"));
     }
 
 
