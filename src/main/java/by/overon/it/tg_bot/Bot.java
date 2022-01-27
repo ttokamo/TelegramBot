@@ -93,8 +93,12 @@ public class Bot extends TelegramLongPollingBot {
         return sendMessage;
     }
 
-
-
+    public SendMessage askAboutModel(String chatId) {
+        sendMessage = new SendMessage();
+        sendMessage.setText("Введите модель автомобиля");
+        sendMessage.setChatId(chatId);
+        return sendMessage;
+    }
 
 
     @Override
