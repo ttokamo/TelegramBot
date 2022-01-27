@@ -21,28 +21,37 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public class Bot extends TelegramLongPollingBot {
-
     private final String BOT_NAME = "test_bot";
     private final String BOT_TOKEN = "5153744354:AAFufvHy_I6mTRVLQ8slD0ge8s_JA7oF6Og";
-    private SendMessage sendMessage;
 
     public Bot(DefaultBotOptions defaultBotOptions) {
         super(defaultBotOptions);
     }
 
     @Override
-    @SneakyThrows
     // Метод, который вызывается при запросе пользователя
     public void onUpdateReceived(Update update) {
         // Получаем текст сообщения
-        String message = update.getMessage().getText();
-
         // Проверяем на содержание "/start" и в случае "true" отправляем ответ пользователю
-        if (message.startsWith("/start")) {
-            execute(showGreetingMenu(update.getMessage().getChatId().toString()));
+        if (update.hasMessage()) {
+            String message = update.getMessage().getText();
+            if (message != null) {
+                if (message.startsWith("/start")) {
+                    try {
+                        execute(showGreetingMenu(update.getMessage().getChatId().toString()));
+                    } catch (TelegramApiException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
         } else if (update.hasCallbackQuery()) {
-            if(update.getCallbackQuery().getData().startsWith("1")) {
-
+            if (update.getCallbackQuery().getData().startsWith("1")) {
+                try {
+                    SendMessage sendMessage = askAboutBrand(update.getCallbackQuery().getMessage().getChatId().toString());
+                    execute(sendMessage);
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -78,26 +87,25 @@ public class Bot extends TelegramLongPollingBot {
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(inlineButtons);
 
-        sendMessage = new SendMessage(); // Создаем сообщение
-        sendMessage.setText("Тест"); // Устанавливаем текст сообщения, который будет выводится над кнопками
-        sendMessage.setChatId(chatId); // Указываем ID чата, который получаем через параметры метода
+        SendMessage sendMessage = createMessage(chatId, "Тест");
         sendMessage.setReplyMarkup(markup); // Устанавливаем разметку
         return sendMessage; // Возвращаем наше сообщение
     }
 
-
-    public SendMessage askAboutBrand(String chatId) {
-        sendMessage = new SendMessage();
-        sendMessage.setText("Введите бренд автомобиля");
+    public SendMessage createMessage(String chatId, String text) {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setText(text);
         sendMessage.setChatId(chatId);
         return sendMessage;
     }
 
+
+    public SendMessage askAboutBrand(String chatId) {
+        return createMessage(chatId, "Введите бренд автомобиля");
+    }
+
     public SendMessage askAboutModel(String chatId) {
-        sendMessage = new SendMessage();
-        sendMessage.setText("Введите модель автомобиля");
-        sendMessage.setChatId(chatId);
-        return sendMessage;
+        return createMessage(chatId, "Введите модель");
     }
 
 
