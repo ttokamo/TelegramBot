@@ -1,24 +1,15 @@
 package by.overon.it.tg_bot;
 
-import by.overon.it.repository.CarsAdsRepository;
 import lombok.SneakyThrows;
-import org.aspectj.bridge.MessageHandler;
-import org.springframework.cache.annotation.Cacheable;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 public class Bot extends TelegramLongPollingBot {
     private final String BOT_NAME = "test_bot";
@@ -29,6 +20,7 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     @Override
+    @SneakyThrows
     // Метод, который вызывается при запросе пользователя
     public void onUpdateReceived(Update update) {
         // Проверяем на наличие сообщения
@@ -37,12 +29,8 @@ public class Bot extends TelegramLongPollingBot {
             if (message != null) {
                 // Проверяем на содержание "/start" и в случае "true" отправляем ответ пользователю
                 if (message.startsWith("/start")) {
-                    try {
-                        // Отправляем приветственное меню
-                        execute(showGreetingMenu(update.getMessage().getChatId().toString()));
-                    } catch (TelegramApiException e) {
-                        e.printStackTrace();
-                    }
+                    // Отправляем приветственное меню
+                    execute(showGreetingMenu(update.getMessage().getChatId().toString()));
                 }
             }
         }
@@ -50,12 +38,8 @@ public class Bot extends TelegramLongPollingBot {
         else if (update.hasCallbackQuery()) {
             // Проверяем полученное значение кнопки
             if (update.getCallbackQuery().getData().startsWith("1")) {
-                try {
-                    // Отправляем сообщение в зависимости от значения кнопки
-                    execute(askAboutBrand(update.getCallbackQuery().getMessage().getChatId().toString()));
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
-                }
+                // Отправляем сообщение в зависимости от значения кнопки
+                execute(askAboutBrand(update.getCallbackQuery().getMessage().getChatId().toString()));
             }
         }
     }
