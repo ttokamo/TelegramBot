@@ -106,28 +106,34 @@ public class Bot extends TelegramLongPollingBot {
         execute(createMessage(chatId, "Введите модель"));
     }
 
-    public SendMessage askAboutMileage(String chatId) {
-        return createMessage(chatId, "Введите пробег автомобиля");
+    @SneakyThrows
+    public void askAboutMileage(String chatId) {
+        execute(createMessage(chatId, "Введите пробег автомобиля"));
     }
 
-    public SendMessage askAboutYear(String chatId) {
-        return createMessage(chatId, "Введите пробег автомобиля");
+    @SneakyThrows
+    public void askAboutYear(String chatId) {
+        execute(createMessage(chatId, "Введите пробег автомобиля"));
     }
 
-    public SendMessage askAboutPrice(String chatId) {
-        return createMessage(chatId, "Введите цену автомобиля");
+    @SneakyThrows
+    public void askAboutPrice(String chatId) {
+        execute(createMessage(chatId, "Введите цену автомобиля"));
     }
 
-    public SendMessage askAboutText(String chatId) {
-        return createMessage(chatId, "Введите описание автомобиля");
+    @SneakyThrows
+    public void askAboutText(String chatId) {
+        execute(createMessage(chatId, "Введите описание автомобиля"));
     }
 
-    public SendMessage askAboutPhoto(String chatId) {
-        return createMessage(chatId, "Загрузите фото автомобиля");
+    @SneakyThrows
+    public void askAboutPhoto(String chatId) {
+        execute(createMessage(chatId, "Загрузите фото автомобиля"));
     }
 
-    public SendMessage askAboutTelephone(String chatId) {
-        return createMessage(chatId, "Введите ваш номер");
+    @SneakyThrows
+    public void askAboutTelephone(String chatId) {
+        execute(createMessage(chatId, "Введите ваш номер"));
     }
 
     @Override
