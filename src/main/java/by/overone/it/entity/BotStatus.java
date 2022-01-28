@@ -3,6 +3,7 @@ package by.overone.it.entity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.GenericGenerator;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.*;
@@ -14,9 +15,9 @@ import javax.persistence.*;
 public class BotStatus {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id", updatable = false, nullable = false, unique = true)
-    private Long id;
+    @GeneratedValue(generator = "uuid-generator")
+    @GenericGenerator(name = "uuid-generator", strategy = "uuid")
+    private String id;
     @Setter
     @Column(name = "chat_id")
     private String chatId;
