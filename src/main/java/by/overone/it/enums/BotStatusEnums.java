@@ -1,4 +1,4 @@
-package by.overon.it.enums;
+package by.overone.it.enums;
 
 public enum BotStatusEnums {
     ASK_ABOUT_BRAND,

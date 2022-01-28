@@ -1,6 +1,11 @@
-package by.overon.it.tg_bot;
+package by.overone.it.tg_bot;
 
+import by.overone.it.entity.BotStatus;
+import by.overone.it.enums.BotStatusEnums;
+import by.overone.it.dao.BotStatusDao;
 import lombok.SneakyThrows;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -11,13 +16,15 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class Bot extends TelegramLongPollingBot {
+    @Autowired
+    private BotStatusDao dao;
+    private BotStatus botStatus;
     private final String BOT_NAME = "test_bot";
     private final String BOT_TOKEN = "5153744354:AAFufvHy_I6mTRVLQ8slD0ge8s_JA7oF6Og";
 
-    public Bot(DefaultBotOptions defaultBotOptions) {
-        super(defaultBotOptions);
-    }
+    public Bot() {}
 
     @Override
     @SneakyThrows
@@ -38,8 +45,13 @@ public class Bot extends TelegramLongPollingBot {
         else if (update.hasCallbackQuery()) {
             // Проверяем полученное значение кнопки
             if (update.getCallbackQuery().getData().startsWith("1")) {
-                // Отправляем сообщение в зависимости от значения кнопки
-                askAboutBrand(update.getCallbackQuery().getMessage().getChatId().toString());
+                // Отправляем сообщение в зависимости от значения кнопкиAutowired
+                botStatus = new BotStatus();
+                String chatId = update.getCallbackQuery().getMessage().getChatId().toString();
+                botStatus.setUserId(chatId);
+                botStatus.setStatus(BotStatusEnums.ASK_ABOUT_MODEL.toString());
+                botStatus = dao.save(botStatus);
+                askAboutBrand(chatId);
             }
         }
     }

@@ -1,8 +1,9 @@
-package by.overon.it.entity;
+package by.overone.it.entity;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.stereotype.Component;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -11,6 +12,7 @@ import java.math.BigDecimal;
 @Table
 @NoArgsConstructor
 @Getter
+@Component
 public class Ad {
 
     @Id
