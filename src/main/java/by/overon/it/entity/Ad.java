@@ -1,5 +1,6 @@
 package by.overon.it.entity;
 
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
@@ -9,7 +10,7 @@ import java.math.BigDecimal;
 @Entity
 @Table
 @NoArgsConstructor
-
+@Getter
 public class Ad {
 
     @Id
