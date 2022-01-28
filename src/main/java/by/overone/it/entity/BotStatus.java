@@ -8,10 +8,9 @@ import org.springframework.stereotype.Component;
 import javax.persistence.*;
 
 @Entity
-@Table
+@Table(name = "BOT_STATUS")
 @NoArgsConstructor
 @Getter
-@Component
 public class BotStatus {
 
     @Id
@@ -19,8 +18,8 @@ public class BotStatus {
     @Column(name = "id", updatable = false, nullable = false, unique = true)
     private Long id;
     @Setter
-    @Column(name = "user_id")
-    private String userId;
+    @Column(name = "chat_id")
+    private String chatId;
     @Setter
     private String status;
 }

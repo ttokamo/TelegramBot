@@ -3,21 +3,19 @@ package by.overone.it.entity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.stereotype.Component;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
 
 @Entity
-@Table
+@Table(name = "ADS")
 @NoArgsConstructor
 @Getter
-@Component
 public class Ad {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id", updatable = false, nullable = false, unique=true)
+    @Column(name = "id", updatable = false, nullable = false, unique = true)
     private String id;
     @Setter
     private String user_id;
