@@ -108,6 +108,29 @@ public class Bot extends TelegramLongPollingBot {
         return createMessage(chatId, "Введите модель");
     }
 
+    public SendMessage askAboutMileage(String chatId) {
+        return createMessage(chatId, "Введите пробег автомобиля");
+    }
+
+    public SendMessage askAboutYear(String chatId) {
+        return createMessage(chatId, "Введите пробег автомобиля");
+    }
+
+    public SendMessage askAboutPrice(String chatId) {
+        return createMessage(chatId, "Введите цену автомобиля");
+    }
+
+    public SendMessage askAboutText(String chatId) {
+        return createMessage(chatId, "Введите описание автомобиля");
+    }
+
+    public SendMessage askAboutPhoto(String chatId) {
+        return createMessage(chatId, "Загрузите фото автомобиля");
+    }
+
+    public SendMessage askAboutTelephone(String chatId) {
+        return createMessage(chatId, "Введите ваш номер");
+    }
 
     @Override
     public String getBotUsername() {
