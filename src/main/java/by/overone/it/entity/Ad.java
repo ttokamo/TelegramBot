@@ -19,7 +19,7 @@ public class Ad {
     @GenericGenerator(name = "uuid-generator", strategy = "uuid")
     private String id;
     @Setter
-    private String user_id;
+    private String chatId;
     @Setter
     private String brand;
     @Setter
