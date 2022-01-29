@@ -1,6 +1,6 @@
 package by.overone.it.tg_bot;
 
-import by.overone.it.dao.BotStatusDao;
+import by.overone.it.dao.BotStatusService;
 import by.overone.it.entity.BotStatus;
 import by.overone.it.enums.BotStatusEnums;
 import lombok.SneakyThrows;
@@ -18,7 +18,7 @@ import java.util.List;
 @Component
 public class Bot extends TelegramLongPollingBot {
     @Autowired
-    private BotStatusDao dao;
+    private BotStatusService dao;
     private BotStatus botStatus;
     private final String BOT_NAME = "test_bot";
     private final String BOT_TOKEN = "5153744354:AAFufvHy_I6mTRVLQ8slD0ge8s_JA7oF6Og";
