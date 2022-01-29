@@ -6,6 +6,7 @@ import by.overone.it.entity.Ad;
 import by.overone.it.entity.BotStatus;
 import by.overone.it.enums.BotStatusEnums;
 import lombok.SneakyThrows;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -31,7 +32,7 @@ public class Bot extends TelegramLongPollingBot {
     @Override
     @SneakyThrows
     // Метод, который вызывается при запросе пользователя
-    public void onUpdateReceived(Update update) {
+    public synchronized void onUpdateReceived(Update update) {
         // Проверяем на наличие сообщения
         if (update.hasMessage()) {
             String message = update.getMessage().getText();
@@ -108,10 +109,15 @@ public class Bot extends TelegramLongPollingBot {
                 adService.saveAd(ad);
                 // Отправляем вопрос
                 askAboutBrand(chatId);
-            } else if (button.startsWith("2")) {
-                List<Ad> adList = adService.readAll();
+            } else if (button.startsWith("2") || button.startsWith("3")) {
+                List<Ad> adList;
+                if (button.startsWith("2")) {
+                    adList = adService.readAll();
+                } else {
+                    adList = adService.findByChatId(chatId);
+                }
                 createMessage(chatId, adList.toString());
-                showAllAds(chatId, adList);
+                showAds(chatId, adList);
             }
         }
     }
@@ -169,7 +175,7 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     @SneakyThrows
-    private void showAllAds(String chatId, List<Ad> adList) {
+    private void showAds(String chatId, List<Ad> adList) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
         for (Ad ad : adList) {

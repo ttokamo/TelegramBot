@@ -53,4 +53,7 @@ public interface AdRepository extends CrudRepository<Ad, String> {
     @Modifying
     @Query("update Ad set status =:status where id =:id")
     void updateAdStatus(@Param("id") String id, @Param("status") String status);
+
+    @Query("from Ad where chatId =:chatId")
+    List<Ad> getByChatId(@Param("chatId") String chatId);
 }

@@ -2,6 +2,7 @@ package by.overone.it.dao;
 
 import by.overone.it.entity.Ad;
 import by.overone.it.repository.AdRepository;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -55,5 +56,9 @@ public class AdService {
 
     public void updateStatus(String id, String status) {
         adRepository.updateAdStatus(id, status);
+    }
+
+    public List<Ad> findByChatId(String chatId) {
+        return adRepository.getByChatId(chatId);
     }
 }
