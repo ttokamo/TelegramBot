@@ -5,6 +5,8 @@ import by.overone.it.repository.AdRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class AdService {
 
@@ -15,39 +17,43 @@ public class AdService {
         adRepository.save(ad);
     }
 
-    public void updateBrand(String chatId, String brand) {
-        adRepository.updateAdBrand(chatId, brand);
+    public List<Ad> readAll() {
+        return adRepository.findAll();
     }
 
-    public void updateModel(String chatId, String model) {
-        adRepository.updateAdModel(chatId, model);
+    public void updateBrand(String id, String brand) {
+        adRepository.updateAdBrand(id, brand);
     }
 
-    public void updateYear(String chatId, String year) {
-        adRepository.updateAdYear(chatId, year);
+    public void updateModel(String id, String model) {
+        adRepository.updateAdModel(id, model);
     }
 
-    public void updateMileage(String chatId, String mileage) {
-        adRepository.updateAdMileage(chatId, mileage);
+    public void updateYear(String id, String year) {
+        adRepository.updateAdYear(id, year);
     }
 
-    public void updatePrice(String chatId, String price) {
-        adRepository.updateAdPrice(chatId, price);
+    public void updateMileage(String id, String mileage) {
+        adRepository.updateAdMileage(id, mileage);
     }
 
-    public void updatePhoto(String chatId, String photo) {
-        adRepository.updateAdPhoto(chatId, photo);
+    public void updatePrice(String id, String price) {
+        adRepository.updateAdPrice(id, price);
     }
 
-    public void updateDescription(String chatId, String description) {
-        adRepository.updateAdDescription(chatId, description);
+    public void updatePhoto(String id, String photo) {
+        adRepository.updateAdPhoto(id, photo);
     }
 
-    public void updateTelephone(String chatId, String telephone) {
-        adRepository.updateAdTelephone(chatId, telephone);
+    public void updateDescription(String id, String description) {
+        adRepository.updateAdDescription(id, description);
     }
 
-    public void updateStatus(String chatId, String status) {
-        adRepository.updateAdStatus(chatId, status);
+    public void updateTelephone(String id, String telephone) {
+        adRepository.updateAdTelephone(id, telephone);
+    }
+
+    public void updateStatus(String id, String status) {
+        adRepository.updateAdStatus(id, status);
     }
 }

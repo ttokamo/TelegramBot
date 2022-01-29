@@ -15,10 +15,12 @@ import javax.transaction.Transactional;
 @Transactional
 public interface BotStatusRepository extends CrudRepository<BotStatus, String> {
 
-    @Transactional
     @Modifying
     @Query("update BotStatus set status =:status where chatId =:chatId")
     void updateBotStatus(@Param("chatId") String chatId, @Param("status") String status);
 
+    @Modifying
+    @Query("delete BotStatus where chatId =:chatId")
+    void deleteBotStatus(@Param("chatId") String chatId);
     BotStatus findFirstByChatId(String chatId);
 }

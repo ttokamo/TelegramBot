@@ -8,44 +8,49 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import javax.transaction.Transactional;
+import java.io.Serializable;
+import java.util.List;
 
 @Repository
 @Transactional
 public interface AdRepository extends CrudRepository<Ad, String> {
 
-    @Modifying
-    @Query("update Ad set brand =:brand where chatId =:chatId")
-    void updateAdBrand(@Param("chatId") String chatId, @Param("brand") String brand);
+    @Override
+    List<Ad> findAll();
 
     @Modifying
-    @Query("update Ad set model =:model where chatId =:chatId")
-    void updateAdModel(@Param("chatId") String chatId, @Param("model") String model);
+    @Query("update Ad set brand =:brand where id =:id")
+    void updateAdBrand(@Param("id") String id, @Param("brand") String brand);
 
     @Modifying
-    @Query("update Ad set year =:year where chatId =:chatId")
-    void updateAdYear(@Param("chatId") String chatId, @Param("year") String year);
+    @Query("update Ad set model =:model where id =:id")
+    void updateAdModel(@Param("id") String id, @Param("model") String model);
 
     @Modifying
-    @Query("update Ad set mileage =:mileage where chatId =:chatId")
-    void updateAdMileage(@Param("chatId") String chatId, @Param("mileage") String mileage);
+    @Query("update Ad set year =:year where id =:id")
+    void updateAdYear(@Param("id") String id, @Param("year") String year);
 
     @Modifying
-    @Query("update Ad set price =:price where chatId =:chatId")
-    void updateAdPrice(@Param("chatId") String chatId, @Param("price") String price);
+    @Query("update Ad set mileage =:mileage where id =:id")
+    void updateAdMileage(@Param("id") String id, @Param("mileage") String mileage);
 
     @Modifying
-    @Query("update Ad set photo =:photo where chatId =:chatId")
-    void updateAdPhoto(@Param("chatId") String chatId, @Param("photo") String photo);
+    @Query("update Ad set price =:price where id =:id")
+    void updateAdPrice(@Param("id") String id, @Param("price") String price);
 
     @Modifying
-    @Query("update Ad set description =:description where chatId =:chatId")
-    void updateAdDescription(@Param("chatId") String chatId, @Param("description") String description);
+    @Query("update Ad set photo =:photo where id =:id")
+    void updateAdPhoto(@Param("id") String id, @Param("photo") String photo);
 
     @Modifying
-    @Query("update Ad set telephone =:telephone where chatId =:chatId")
-    void updateAdTelephone(@Param("chatId") String chatId, @Param("telephone") String telephone);
+    @Query("update Ad set description =:description where id =:id")
+    void updateAdDescription(@Param("id") String id, @Param("description") String description);
 
     @Modifying
-    @Query("update Ad set status =:status where chatId =:chatId")
-    void updateAdStatus(@Param("chatId") String chatId, @Param("status") String status);
+    @Query("update Ad set telephone =:telephone where id =:id")
+    void updateAdTelephone(@Param("id") String id, @Param("telephone") String telephone);
+
+    @Modifying
+    @Query("update Ad set status =:status where id =:id")
+    void updateAdStatus(@Param("id") String id, @Param("status") String status);
 }

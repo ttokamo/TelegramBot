@@ -17,6 +17,10 @@ public class BotStatusService {
         return repository.save(botStatus);
     }
 
+    public void deleteBotStatus(String chatId) {
+        repository.deleteBotStatus(chatId);
+    }
+
     public Optional<BotStatus> findById(String chatId) {
         return repository.findById(chatId);
     }
