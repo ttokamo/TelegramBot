@@ -10,4 +10,5 @@ public enum BotStatusEnums {
     ASK_ABOUT_PRICE,
     ASK_ABOUT_PHOTO,
     ASK_ABOUT_TELEPHONE,
+    FINISH
 }

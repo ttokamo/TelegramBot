@@ -5,8 +5,6 @@ import by.overone.it.repository.AdRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-
 @Service
 public class AdService {
 
@@ -33,7 +31,7 @@ public class AdService {
         adRepository.updateAdMileage(chatId, mileage);
     }
 
-    public void updatePrice(String chatId, BigDecimal price) {
+    public void updatePrice(String chatId, String price) {
         adRepository.updateAdPrice(chatId, price);
     }
 

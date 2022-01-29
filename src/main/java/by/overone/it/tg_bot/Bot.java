@@ -1,6 +1,8 @@
 package by.overone.it.tg_bot;
 
+import by.overone.it.dao.AdService;
 import by.overone.it.dao.BotStatusService;
+import by.overone.it.entity.Ad;
 import by.overone.it.entity.BotStatus;
 import by.overone.it.enums.BotStatusEnums;
 import lombok.SneakyThrows;
@@ -19,6 +21,9 @@ import java.util.List;
 public class Bot extends TelegramLongPollingBot {
     @Autowired
     private BotStatusService botStatusService;
+    @Autowired
+    private AdService adService;
+    private Ad ad;
     private BotStatus botStatus;
     private final String BOT_NAME = "test_bot";
     private final String BOT_TOKEN = "5153744354:AAFufvHy_I6mTRVLQ8slD0ge8s_JA7oF6Og";
@@ -38,26 +43,33 @@ public class Bot extends TelegramLongPollingBot {
                     showGreetingMenu(chatId);
                 } else if (botStatus != null && update.getMessage().hasText()) {
                     botStatus = botStatusService.findFirstByChatId(chatId);
-
                     // Начало цепочки вопрос-ответ
                     if (botStatus.getStatus().equals(BotStatusEnums.ASK_ABOUT_MODEL.toString())) {
                         botStatusService.updateBotStatus(chatId, BotStatusEnums.ASK_ABOUT_YEAR.toString());
+                        Ad ad = new Ad();
+                        ad.setChatId(chatId);
+                        ad.setBrand(message);
+                        adService.saveAd(ad);
                         askAboutModel(chatId);
 
                     } else if (botStatus.getStatus().equals(BotStatusEnums.ASK_ABOUT_YEAR.toString())) {
                         botStatusService.updateBotStatus(chatId, BotStatusEnums.ASK_ABOUT_MILEAGE.toString());
+                        adService.updateModel(chatId, message);
                         askAboutYear(chatId);
 
                     } else if (botStatus.getStatus().equals(BotStatusEnums.ASK_ABOUT_MILEAGE.toString())) {
                         botStatusService.updateBotStatus(chatId, BotStatusEnums.ASK_ABOUT_PRICE.toString());
+                        adService.updateYear(chatId, message);
                         askAboutMileage(chatId);
 
                     } else if (botStatus.getStatus().equals(BotStatusEnums.ASK_ABOUT_PRICE.toString())) {
                         botStatusService.updateBotStatus(chatId, BotStatusEnums.ASK_ABOUT_PHOTO.toString());
+                        adService.updateMileage(chatId, message);
                         askAboutPrice(chatId);
 
                     } else if (botStatus.getStatus().equals(BotStatusEnums.ASK_ABOUT_PHOTO.toString())) {
                         botStatusService.updateBotStatus(chatId, BotStatusEnums.ASK_ABOUT_DESCRIPTION.toString());
+                        adService.updatePrice(chatId, message);
                         askAboutPhoto(chatId);
 
                     } else if (botStatus.getStatus().equals(BotStatusEnums.ASK_ABOUT_DESCRIPTION.toString())) {
@@ -65,6 +77,12 @@ public class Bot extends TelegramLongPollingBot {
                         askAboutDescription(chatId);
 
                     } else if (botStatus.getStatus().equals(BotStatusEnums.ASK_ABOUT_TELEPHONE.toString())) {
+                        botStatusService.updateBotStatus(chatId, BotStatusEnums.FINISH.toString());
+                        adService.updateDescription(chatId, message);
+                        askAboutTelephone(chatId);
+                    } else if (botStatus.getStatus().equals(BotStatusEnums.FINISH.toString())) {
+                        adService.updateTelephone(chatId, message);
+                        adService.updateStatus(chatId, "waiting");
                         warnAboutCreationAd(chatId);
                     }
                 }

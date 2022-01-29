@@ -8,7 +8,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import javax.transaction.Transactional;
-import java.math.BigDecimal;
 
 @Repository
 @Transactional
@@ -32,7 +31,7 @@ public interface AdRepository extends CrudRepository<Ad, String> {
 
     @Modifying
     @Query("update Ad set price =:price where chatId =:chatId")
-    void updateAdPrice(@Param("chatId") String chatId, @Param("price") BigDecimal price);
+    void updateAdPrice(@Param("chatId") String chatId, @Param("price") String price);
 
     @Modifying
     @Query("update Ad set photo =:photo where chatId =:chatId")
