@@ -23,9 +23,6 @@ public class Bot extends TelegramLongPollingBot {
     private final String BOT_NAME = "test_bot";
     private final String BOT_TOKEN = "5153744354:AAFufvHy_I6mTRVLQ8slD0ge8s_JA7oF6Og";
 
-    public Bot() {
-    }
-
     @Override
     @SneakyThrows
     // Метод, который вызывается при запросе пользователя
@@ -34,10 +31,42 @@ public class Bot extends TelegramLongPollingBot {
         if (update.hasMessage()) {
             String message = update.getMessage().getText();
             if (message != null) {
+                String chatId = update.getMessage().getChatId().toString();
                 // Проверяем на содержание "/start" и в случае "true" отправляем ответ пользователю
                 if (message.startsWith("/start")) {
                     // Отправляем приветственное меню
-                    showGreetingMenu(update.getMessage().getChatId().toString());
+                    showGreetingMenu(chatId);
+                } else if (botStatus != null && update.getMessage().hasText()) {
+                    botStatus = dao.findFirstByChatId(chatId);
+
+                    // Начало цепочки вопрос-ответ
+                    if (botStatus.getStatus().equals(BotStatusEnums.ASK_ABOUT_MODEL.toString())) {
+                        dao.updateBotStatus(chatId, BotStatusEnums.ASK_ABOUT_YEAR.toString());
+                        askAboutModel(chatId);
+
+                    } else if (botStatus.getStatus().equals(BotStatusEnums.ASK_ABOUT_YEAR.toString())) {
+                        dao.updateBotStatus(chatId, BotStatusEnums.ASK_ABOUT_MILEAGE.toString());
+                        askAboutYear(chatId);
+
+                    } else if (botStatus.getStatus().equals(BotStatusEnums.ASK_ABOUT_MILEAGE.toString())) {
+                        dao.updateBotStatus(chatId, BotStatusEnums.ASK_ABOUT_PRICE.toString());
+                        askAboutMileage(chatId);
+
+                    } else if (botStatus.getStatus().equals(BotStatusEnums.ASK_ABOUT_PRICE.toString())) {
+                        dao.updateBotStatus(chatId, BotStatusEnums.ASK_ABOUT_PHOTO.toString());
+                        askAboutPrice(chatId);
+
+                    } else if (botStatus.getStatus().equals(BotStatusEnums.ASK_ABOUT_PHOTO.toString())) {
+                        dao.updateBotStatus(chatId, BotStatusEnums.ASK_ABOUT_DESCRIPTION.toString());
+                        askAboutPhoto(chatId);
+
+                    } else if (botStatus.getStatus().equals(BotStatusEnums.ASK_ABOUT_DESCRIPTION.toString())) {
+                        dao.updateBotStatus(chatId, BotStatusEnums.ASK_ABOUT_TELEPHONE.toString());
+                        askAboutDescription(chatId);
+
+                    } else if (botStatus.getStatus().equals(BotStatusEnums.ASK_ABOUT_TELEPHONE.toString())) {
+                        warnAboutCreationAd(chatId);
+                    }
                 }
             }
         }
@@ -130,7 +159,7 @@ public class Bot extends TelegramLongPollingBot {
 
     @SneakyThrows
     public void askAboutYear(String chatId) {
-        execute(createMessage(chatId, "Введите пробег автомобиля"));
+        execute(createMessage(chatId, "Введите год автомобиля"));
     }
 
     @SneakyThrows
@@ -139,7 +168,7 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     @SneakyThrows
-    public void askAboutText(String chatId) {
+    public void askAboutDescription(String chatId) {
         execute(createMessage(chatId, "Введите описание автомобиля"));
     }
 
@@ -151,6 +180,11 @@ public class Bot extends TelegramLongPollingBot {
     @SneakyThrows
     public void askAboutTelephone(String chatId) {
         execute(createMessage(chatId, "Введите ваш номер"));
+    }
+
+    @SneakyThrows
+    public void warnAboutCreationAd(String chatId) {
+        execute(createMessage(chatId, "Объявление успешно создано и отправлено на рассмотрение администратору"));
     }
 
     @Override
