@@ -42,34 +42,33 @@ public class Bot extends TelegramLongPollingBot {
                     // Отправляем приветственное меню
                     showGreetingMenu(chatId);
                 } else if (botStatus != null && update.getMessage().hasText()) {
+                    String id = ad.getId();
+
                     botStatus = botStatusService.findFirstByChatId(chatId);
                     // Начало цепочки вопрос-ответ
                     if (botStatus.getStatus().equals(BotStatusEnums.ASK_ABOUT_MODEL.toString())) {
                         botStatusService.updateBotStatus(chatId, BotStatusEnums.ASK_ABOUT_YEAR.toString());
-                        Ad ad = new Ad();
-                        ad.setChatId(chatId);
-                        ad.setBrand(message);
-                        adService.saveAd(ad);
+                        adService.updateBrand(id, message);
                         askAboutModel(chatId);
 
                     } else if (botStatus.getStatus().equals(BotStatusEnums.ASK_ABOUT_YEAR.toString())) {
                         botStatusService.updateBotStatus(chatId, BotStatusEnums.ASK_ABOUT_MILEAGE.toString());
-                        adService.updateModel(chatId, message);
+                        adService.updateModel(id, message);
                         askAboutYear(chatId);
 
                     } else if (botStatus.getStatus().equals(BotStatusEnums.ASK_ABOUT_MILEAGE.toString())) {
                         botStatusService.updateBotStatus(chatId, BotStatusEnums.ASK_ABOUT_PRICE.toString());
-                        adService.updateYear(chatId, message);
+                        adService.updateYear(id, message);
                         askAboutMileage(chatId);
 
                     } else if (botStatus.getStatus().equals(BotStatusEnums.ASK_ABOUT_PRICE.toString())) {
                         botStatusService.updateBotStatus(chatId, BotStatusEnums.ASK_ABOUT_PHOTO.toString());
-                        adService.updateMileage(chatId, message);
+                        adService.updateMileage(id, message);
                         askAboutPrice(chatId);
 
                     } else if (botStatus.getStatus().equals(BotStatusEnums.ASK_ABOUT_PHOTO.toString())) {
                         botStatusService.updateBotStatus(chatId, BotStatusEnums.ASK_ABOUT_DESCRIPTION.toString());
-                        adService.updatePrice(chatId, message);
+                        adService.updatePrice(id, message);
                         askAboutPhoto(chatId);
 
                     } else if (botStatus.getStatus().equals(BotStatusEnums.ASK_ABOUT_DESCRIPTION.toString())) {
@@ -78,11 +77,12 @@ public class Bot extends TelegramLongPollingBot {
 
                     } else if (botStatus.getStatus().equals(BotStatusEnums.ASK_ABOUT_TELEPHONE.toString())) {
                         botStatusService.updateBotStatus(chatId, BotStatusEnums.FINISH.toString());
-                        adService.updateDescription(chatId, message);
+                        adService.updateDescription(id, message);
                         askAboutTelephone(chatId);
                     } else if (botStatus.getStatus().equals(BotStatusEnums.FINISH.toString())) {
-                        adService.updateTelephone(chatId, message);
-                        adService.updateStatus(chatId, "waiting");
+                        adService.updateTelephone(id, message);
+                        adService.updateStatus(id, "waiting");
+                        botStatusService.deleteBotStatus(chatId);
                         warnAboutCreationAd(chatId);
                     }
                 }
@@ -90,20 +90,28 @@ public class Bot extends TelegramLongPollingBot {
         }
         // Проверяем на наличие нажатой кнопки
         else if (update.hasCallbackQuery()) {
+            // Считываем id чата
+            String chatId = update.getCallbackQuery().getMessage().getChatId().toString();
             // Проверяем полученное значение кнопки
-            if (update.getCallbackQuery().getData().startsWith("1")) {
+            String button = update.getCallbackQuery().getData();
+            if (button.startsWith("1")) {
                 // Создаем объект статуса бота
                 botStatus = new BotStatus();
-                // Считываем id чата
-                String chatId = update.getCallbackQuery().getMessage().getChatId().toString();
+                ad = new Ad();
                 // Устанавливаем значение chatId нашему объекту
                 botStatus.setChatId(chatId);
                 // Устанавливаем состояние бота
                 botStatus.setStatus(BotStatusEnums.ASK_ABOUT_MODEL.toString());
                 // Сохраняем в бд
                 botStatus = botStatusService.save(botStatus);
+                ad.setChatId(chatId);
+                adService.saveAd(ad);
                 // Отправляем вопрос
                 askAboutBrand(chatId);
+            } else if (button.startsWith("2")) {
+                List<Ad> adList = adService.readAll();
+                createMessage(chatId, adList.toString());
+                showAllAds(chatId, adList);
             }
         }
     }
@@ -158,6 +166,24 @@ public class Bot extends TelegramLongPollingBot {
         sendMessage.setText(text);
         sendMessage.setChatId(chatId);
         return sendMessage;
+    }
+
+    @SneakyThrows
+    private void showAllAds(String chatId, List<Ad> adList) {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(chatId);
+        for (Ad ad : adList) {
+            sendMessage.setText(
+                    ad.getDescription() + "\n"
+                    + "Бренд: " + ad.getBrand() + "\n"
+                    + "Модель: " + ad.getModel() + "\n"
+                    + "Год: " + ad.getYear() + "\n"
+                    + "Пробег: " + ad.getMileage() + "\n"
+                    + "Цена: " + ad.getPrice() + "\n"
+                    + "Телефон для связи: " + ad.getTelephone() + "\n"
+            );
+            execute(sendMessage);
+        }
     }
 
     @SneakyThrows
