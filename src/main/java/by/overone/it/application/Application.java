@@ -12,11 +12,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
+import org.telegram.telegrambots.meta.generics.BotSession;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 @SpringBootApplication
 @EntityScan(basePackages = "by.overone.it.entity")
-@ComponentScan(basePackages = "by.overone.it.dao")
+@ComponentScan(basePackages = "by.overone.it")
 @EnableJpaRepositories(basePackages = "by.overone.it.repository")
 public class Application {
     @SneakyThrows
@@ -25,20 +26,15 @@ public class Application {
     }
 
     @Bean
-    public CommandLineRunner commandLineRunner(AnnotationConfigApplicationContext context, @Autowired Bot bot) {
+    public CommandLineRunner commandLineRunner(@Autowired BotSession botSession) {
         return args -> {
-            context.getBean(TelegramBotsApi.class).registerBot(context.getBean(Bot.class));
+            botSession.start();
         };
     }
 
     @SneakyThrows
     @Bean
-    public TelegramBotsApi telegramBotsApi() {
-        return new TelegramBotsApi(DefaultBotSession.class);
-    }
-
-    @Bean
-    public Bot bot() {
-        return new Bot();
+    public BotSession botSession(@Autowired Bot bot) {
+        return new TelegramBotsApi(DefaultBotSession.class).registerBot(bot);
     }
 }
