@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -31,7 +32,6 @@ public class Bot extends TelegramLongPollingBot {
     private final String ADMIN_CHAT_ID = "743321260";
 
     @Override
-    @SneakyThrows
     // Метод, который вызывается при запросе пользователя
     public synchronized void onUpdateReceived(Update update) {
         // Проверяем на наличие сообщения
@@ -125,8 +125,12 @@ public class Bot extends TelegramLongPollingBot {
                 }
                 createMessage(chatId, adList.toString());
                 showAds(chatId, adList, role);
-            } else if (button.startsWith("5")) {
-
+            } else if (button.startsWith("approve")) {
+                String[] buttonTextList = button.split("\\s");
+                adService.updateStatus(buttonTextList[1], AdStatusEnums.APPROVED.toString());
+            } else if (button.startsWith("reject")) {
+                String[] buttonTextList = button.split("\\s");
+                adService.deleteAd(buttonTextList[1]);
             }
         }
     }
@@ -173,13 +177,15 @@ public class Bot extends TelegramLongPollingBot {
         return markup;
     }
 
-    private InlineKeyboardMarkup createApproveAndRejectButtons() {
+    private InlineKeyboardMarkup createApproveAndRejectButtons(String approveCallback, String rejectCallback) {
         InlineKeyboardButton approveButton = new InlineKeyboardButton();
         approveButton.setText("Принять");
-        approveButton.setCallbackData("5");
+        approveButton.setCallbackData(approveCallback);
+
         InlineKeyboardButton rejectButton = new InlineKeyboardButton();
         rejectButton.setText("Отклонить");
-        rejectButton.setCallbackData("6");
+        rejectButton.setCallbackData(rejectCallback);
+
         List<InlineKeyboardButton> buttonsRow = new ArrayList<>();
         buttonsRow.add(approveButton);
         buttonsRow.add(rejectButton);
@@ -219,9 +225,6 @@ public class Bot extends TelegramLongPollingBot {
     private void showAds(String chatId, List<Ad> adList, String role) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
-        if (chatId.equals(ADMIN_CHAT_ID) && role.equals("ADMIN")) {
-            sendMessage.setReplyMarkup(createApproveAndRejectButtons());
-        }
         for (Ad ad : adList) {
             sendMessage.setText(
                     ad.getDescription() + "\n"
@@ -232,6 +235,10 @@ public class Bot extends TelegramLongPollingBot {
                             + "Цена: " + ad.getPrice() + "\n"
                             + "Телефон для связи: " + ad.getTelephone() + "\n"
             );
+            if (chatId.equals(ADMIN_CHAT_ID) && role.equals("ADMIN")) {
+                sendMessage.setReplyMarkup(createApproveAndRejectButtons(
+                        "approve " + adList.get(0).getId(), "reject " + adList.get(0).getId()));
+            }
             execute(sendMessage);
         }
     }
