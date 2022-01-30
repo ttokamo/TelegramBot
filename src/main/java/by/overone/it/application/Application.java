@@ -26,15 +26,15 @@ public class Application {
     }
 
     @Bean
-    public CommandLineRunner commandLineRunner(@Autowired BotSession botSession) {
+    public CommandLineRunner commandLineRunner(@Autowired TelegramBotsApi telegramBotsApi, @Autowired Bot bot) {
         return args -> {
-            botSession.start();
+            telegramBotsApi.registerBot(bot);
         };
     }
 
     @SneakyThrows
     @Bean
-    public BotSession botSession(@Autowired Bot bot) {
-        return new TelegramBotsApi(DefaultBotSession.class).registerBot(bot);
+    public TelegramBotsApi telegramBotsApi(Bot bot) {
+        return new TelegramBotsApi(DefaultBotSession.class);
     }
 }

@@ -2,7 +2,6 @@ package by.overone.it.enums;
 
 // Список статусов для бота
 public enum BotStatusEnums {
-    NONE,
     ASK_ABOUT_MODEL,
     ASK_ABOUT_MILEAGE,
     ASK_ABOUT_YEAR,

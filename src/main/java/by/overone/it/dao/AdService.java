@@ -2,10 +2,12 @@ package by.overone.it.dao;
 
 import by.overone.it.entity.Ad;
 import by.overone.it.repository.AdRepository;
-import org.checkerframework.checker.units.qual.A;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.List;
 
 @Service
@@ -42,8 +44,15 @@ public class AdService {
         adRepository.updateAdPrice(id, price);
     }
 
-    public void updatePhoto(String id, String photo) {
-        adRepository.updateAdPhoto(id, photo);
+    @SneakyThrows
+    public void updatePhoto(String id, File photo) {
+        byte[] bPhoto = new byte[(int) photo.length()];
+
+        FileInputStream fileInputStream = new FileInputStream(photo);
+        fileInputStream.read(bPhoto);
+        fileInputStream.close();
+
+        adRepository.updateAdPhoto(id, bPhoto);
     }
 
     public void updateDescription(String id, String description) {
@@ -54,8 +63,17 @@ public class AdService {
         adRepository.updateAdTelephone(id, telephone);
     }
 
-    public void updateStatus(String id, String status) {
+    public String updateStatus(String id, String status) {
         adRepository.updateAdStatus(id, status);
+        return "";
+    }
+
+    public void deleteAd(String id) {
+        adRepository.deleteById(id);
+    }
+
+    public List<Ad> getByStatus(String status) {
+        return adRepository.getByStatus(status);
     }
 
     public List<Ad> findByChatId(String chatId) {

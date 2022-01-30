@@ -4,9 +4,9 @@ import by.overone.it.dao.AdService;
 import by.overone.it.dao.BotStatusService;
 import by.overone.it.entity.Ad;
 import by.overone.it.entity.BotStatus;
+import by.overone.it.enums.AdStatusEnums;
 import by.overone.it.enums.BotStatusEnums;
 import lombok.SneakyThrows;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -28,6 +28,7 @@ public class Bot extends TelegramLongPollingBot {
     private BotStatus botStatus;
     private final String BOT_NAME = "test_bot";
     private final String BOT_TOKEN = "5153744354:AAFufvHy_I6mTRVLQ8slD0ge8s_JA7oF6Og";
+    private final String ADMIN_CHAT_ID = "743321260";
 
     @Override
     @SneakyThrows
@@ -41,7 +42,7 @@ public class Bot extends TelegramLongPollingBot {
                 // Проверяем на содержание "/start" и в случае "true" отправляем ответ пользователю
                 if (message.startsWith("/start")) {
                     // Отправляем приветственное меню
-                    showGreetingMenu(chatId);
+                    showMenu(chatId);
                 } else if (botStatus != null && update.getMessage().hasText()) {
                     String id = ad.getId();
 
@@ -82,7 +83,7 @@ public class Bot extends TelegramLongPollingBot {
                         askAboutTelephone(chatId);
                     } else if (botStatus.getStatus().equals(BotStatusEnums.FINISH.toString())) {
                         adService.updateTelephone(id, message);
-                        adService.updateStatus(id, "waiting");
+                        adService.updateStatus(id, AdStatusEnums.WAITING.toString());
                         botStatusService.deleteBotStatus(chatId);
                         warnAboutCreationAd(chatId);
                     }
@@ -109,22 +110,28 @@ public class Bot extends TelegramLongPollingBot {
                 adService.saveAd(ad);
                 // Отправляем вопрос
                 askAboutBrand(chatId);
-            } else if (button.startsWith("2") || button.startsWith("3")) {
+            } else if (button.startsWith("2") || button.startsWith("3") || button.startsWith("4")) {
                 List<Ad> adList;
+                String role = "";
                 if (button.startsWith("2")) {
-                    adList = adService.readAll();
-                } else {
+                    adList = adService.getByStatus(AdStatusEnums.APPROVED.toString());
+                    role = "USER";
+                } else if (button.startsWith("3")) {
                     adList = adService.findByChatId(chatId);
+                    role = "USER";
+                } else {
+                    adList = adService.getByStatus(AdStatusEnums.WAITING.toString());
+                    role = "ADMIN";
                 }
                 createMessage(chatId, adList.toString());
-                showAds(chatId, adList);
+                showAds(chatId, adList, role);
+            } else if (button.startsWith("5")) {
+
             }
         }
     }
 
-    @SneakyThrows
-    // Метод, отвечающий за вывод приветственного меню. Содержит в себе текст и 3 кнопки
-    private void showGreetingMenu(String chatId) {
+    private List<List<InlineKeyboardButton>> createUserButtons() {
         // Создаем кнопку, которая отвечает за создание объявлений
         InlineKeyboardButton createAd = new InlineKeyboardButton();
         // Присваиваем кнопке текст
@@ -139,29 +146,63 @@ public class Bot extends TelegramLongPollingBot {
         InlineKeyboardButton myAd = new InlineKeyboardButton();
         myAd.setText("Мои объявления");
         myAd.setCallbackData("3");
-
         // Создаем 2 ряда кнопок
         List<InlineKeyboardButton> firstRow = new ArrayList<>();
         List<InlineKeyboardButton> secondRow = new ArrayList<>();
-
         // Раскидываем кнопки по рядам. В данном случае в первом ряду 2 кнопки, а во втором 1
         firstRow.add(createAd);
         firstRow.add(showAd);
         secondRow.add(myAd);
-
         // Объеденяем кнопки в одно целое для отправки
-        List<List<InlineKeyboardButton>> inlineButtons = new ArrayList<>(List.of(
+        return new ArrayList<>(List.of(
                 firstRow,
                 secondRow
         ));
+    }
 
-        // Создаем и устанавливаем разметку для кнопок
+    private InlineKeyboardMarkup createAdminMenuButtons() {
+        InlineKeyboardButton adAdministration = new InlineKeyboardButton();
+        adAdministration.setText("Управление объявлениями");
+        adAdministration.setCallbackData("4");
+        List<InlineKeyboardButton> thirdRow = new ArrayList<>();
+        thirdRow.add(adAdministration);
+        List<List<InlineKeyboardButton>> inlineKeyboards = createUserButtons();
+        inlineKeyboards.add(thirdRow);
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        markup.setKeyboard(inlineKeyboards);
+        return markup;
+    }
+
+    private InlineKeyboardMarkup createApproveAndRejectButtons() {
+        InlineKeyboardButton approveButton = new InlineKeyboardButton();
+        approveButton.setText("Принять");
+        approveButton.setCallbackData("5");
+        InlineKeyboardButton rejectButton = new InlineKeyboardButton();
+        rejectButton.setText("Отклонить");
+        rejectButton.setCallbackData("6");
+        List<InlineKeyboardButton> buttonsRow = new ArrayList<>();
+        buttonsRow.add(approveButton);
+        buttonsRow.add(rejectButton);
+        List<List<InlineKeyboardButton>> inlineButtons = new ArrayList<>();
+        inlineButtons.add(buttonsRow);
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(inlineButtons);
+        return markup;
+    }
 
-        SendMessage sendMessage = createMessage(chatId, "Тест");
-        // Устанавливаем наш тип кнопки для сообщения
-        sendMessage.setReplyMarkup(markup);
+    @SneakyThrows
+    // Метод, отвечающий за вывод приветственного меню. Содержит в себе текст и 3 кнопки
+    private void showMenu(String chatId) {
+        // Создаем текст приветственного сообщения
+        SendMessage sendMessage = createMessage(chatId, Messages.getGreetingMessage());
+        // Проверка на администратора
+        if (chatId.equals(ADMIN_CHAT_ID)) {
+            sendMessage.setReplyMarkup(createAdminMenuButtons());
+        } else {
+            InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+            markup.setKeyboard(createUserButtons());
+            sendMessage.setReplyMarkup(markup);
+        }
         // Возвращаем наше сообщение с кнопками
         execute(sendMessage);
     }
@@ -175,65 +216,68 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     @SneakyThrows
-    private void showAds(String chatId, List<Ad> adList) {
+    private void showAds(String chatId, List<Ad> adList, String role) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
+        if (chatId.equals(ADMIN_CHAT_ID) && role.equals("ADMIN")) {
+            sendMessage.setReplyMarkup(createApproveAndRejectButtons());
+        }
         for (Ad ad : adList) {
             sendMessage.setText(
                     ad.getDescription() + "\n"
-                    + "Бренд: " + ad.getBrand() + "\n"
-                    + "Модель: " + ad.getModel() + "\n"
-                    + "Год: " + ad.getYear() + "\n"
-                    + "Пробег: " + ad.getMileage() + "\n"
-                    + "Цена: " + ad.getPrice() + "\n"
-                    + "Телефон для связи: " + ad.getTelephone() + "\n"
+                            + "Бренд: " + ad.getBrand() + "\n"
+                            + "Модель: " + ad.getModel() + "\n"
+                            + "Год: " + ad.getYear() + "\n"
+                            + "Пробег: " + ad.getMileage() + "\n"
+                            + "Цена: " + ad.getPrice() + "\n"
+                            + "Телефон для связи: " + ad.getTelephone() + "\n"
             );
             execute(sendMessage);
         }
     }
 
     @SneakyThrows
-    public void askAboutBrand(String chatId) {
+    private void askAboutBrand(String chatId) {
         execute(createMessage(chatId, "Введите бренд автомобиля"));
     }
 
     @SneakyThrows
-    public void askAboutModel(String chatId) {
+    private void askAboutModel(String chatId) {
         execute(createMessage(chatId, "Введите модель"));
     }
 
     @SneakyThrows
-    public void askAboutMileage(String chatId) {
+    private void askAboutMileage(String chatId) {
         execute(createMessage(chatId, "Введите пробег автомобиля"));
     }
 
     @SneakyThrows
-    public void askAboutYear(String chatId) {
+    private void askAboutYear(String chatId) {
         execute(createMessage(chatId, "Введите год автомобиля"));
     }
 
     @SneakyThrows
-    public void askAboutPrice(String chatId) {
+    private void askAboutPrice(String chatId) {
         execute(createMessage(chatId, "Введите цену автомобиля"));
     }
 
     @SneakyThrows
-    public void askAboutDescription(String chatId) {
+    private void askAboutDescription(String chatId) {
         execute(createMessage(chatId, "Введите описание автомобиля"));
     }
 
     @SneakyThrows
-    public void askAboutPhoto(String chatId) {
+    private void askAboutPhoto(String chatId) {
         execute(createMessage(chatId, "Загрузите фото автомобиля"));
     }
 
     @SneakyThrows
-    public void askAboutTelephone(String chatId) {
+    private void askAboutTelephone(String chatId) {
         execute(createMessage(chatId, "Введите ваш номер"));
     }
 
     @SneakyThrows
-    public void warnAboutCreationAd(String chatId) {
+    private void warnAboutCreationAd(String chatId) {
         execute(createMessage(chatId, "Объявление успешно создано и отправлено на рассмотрение администратору"));
     }
 
