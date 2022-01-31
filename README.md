@@ -1,4 +1,4 @@
-## Telegram Bot (Java) @tokamo_bot
+## Telegram Bot (Java) @tokamo_bot (автобарахолка)
 
 Использованные технологии:
 
