@@ -29,27 +29,22 @@ public class Bot extends TelegramLongPollingBot {
     private Ad ad;
     private BotStatus botStatus;
     private final String BOT_NAME = "test_bot";
-    private final String BOT_TOKEN = "5153744354:AAFufvHy_I6mTRVLQ8slD0ge8s_JA7oF6Og";
+    private final String BOT_TOKEN = "5153744354:AAEokAPKCxKU0nfsA0HtFXYdHAQEgRkNNzs";
     private final String ADMIN_CHAT_ID = "743321260";
 
     @SneakyThrows
     @Override
     // Метод, который вызывается при запросе пользователя
     public synchronized void onUpdateReceived(Update update) {
-        // Проверяем на наличие сообщения
         if (update.hasMessage()) {
             String message = update.getMessage().getText();
             if (message != null) {
                 String chatId = update.getMessage().getChatId().toString();
-                // Проверяем на содержание "/start" и в случае "true" отправляем ответ пользователю
                 if (message.startsWith("/start")) {
-                    // Отправляем приветственное меню
                     showMenu(chatId);
                 } else if (botStatus != null && update.getMessage().hasText()) {
                     String id = ad.getId();
-
                     botStatus = botStatusService.findFirstByChatId(chatId);
-                    // Начало цепочки вопрос-ответ
                     if (botStatus.getStatus().equals(BotStatusEnums.ASK_ABOUT_MODEL.toString())) {
                         botStatusService.updateBotStatus(chatId, BotStatusEnums.ASK_ABOUT_YEAR.toString());
                         adService.updateBrand(id, message);
@@ -92,34 +87,28 @@ public class Bot extends TelegramLongPollingBot {
                 }
             }
         }
-        // Проверяем на наличие нажатой кнопки
         else if (update.hasCallbackQuery()) {
-            // Считываем id чата
             String chatId = update.getCallbackQuery().getMessage().getChatId().toString();
-            // Проверяем полученное значение кнопки
             String button = update.getCallbackQuery().getData();
+
             if (button.startsWith("1")) {
                 botStatus = botStatusService.findById(chatId);
                 if (botStatus != null) {
                     botStatusService.deleteBotStatus(chatId);
                     adService.deleteAd(ad.getId());
                 }
-                // Создаем объект статуса бота
                 botStatus = new BotStatus();
                 ad = new Ad();
-                // Устанавливаем значение chatId нашему объекту
                 botStatus.setChatId(chatId);
-                // Устанавливаем состояние бота
                 botStatus.setStatus(BotStatusEnums.ASK_ABOUT_MODEL.toString());
-                // Сохраняем в бд
                 botStatus = botStatusService.save(botStatus);
                 ad.setChatId(chatId);
                 adService.saveAd(ad);
-                // Отправляем вопрос
                 askAboutBrand(chatId);
             } else if (button.startsWith("2") || button.startsWith("3") || button.startsWith("4")) {
                 List<Ad> adList;
-                String role = "";
+                String role;
+
                 if (button.startsWith("2")) {
                     adList = adService.getByStatus(AdStatusEnums.APPROVED.toString());
                     role = "ALL_ADS";
@@ -130,29 +119,36 @@ public class Bot extends TelegramLongPollingBot {
                     adList = adService.getByStatus(AdStatusEnums.WAITING.toString());
                     role = "ADMIN";
                 }
+
                 createMessage(chatId, adList.toString());
                 showAds(chatId, adList, role);
+
             } else if (button.startsWith("hidden")) {
+
                 String[] buttonText = splitCallback(button);
-                adService.updateStatus(buttonText[1], AdStatusEnums.HIDDEN.toString());
+                String id = buttonText[1];
+                adService.updateStatus(id, AdStatusEnums.HIDDEN.toString());
                 execute(createEditMessage(
                         chatId,
                         update.getCallbackQuery().getMessage().getMessageId(),
-                        createShowMyAdButton("show " + buttonText[1])));
+                        createShowMyAdButton("show " + id, id)));
 
             } else if (button.startsWith("show")) {
+
                 String[] buttonText = splitCallback(button);
-                adService.updateStatus(buttonText[1], AdStatusEnums.APPROVED.toString());
+                String id = buttonText[1];
+                adService.updateStatus(id, AdStatusEnums.APPROVED.toString());
                 execute(createEditMessage(
                         chatId,
                         update.getCallbackQuery().getMessage().getMessageId(),
-                        createHiddenMyAdButton("hidden " + buttonText[1])));
+                        createHiddenMyAdButton("hidden " + id, id)));
 
             } else if (button.startsWith("approve")) {
                 String[] buttonText = splitCallback(button);
                 adService.updateStatus(buttonText[1], AdStatusEnums.APPROVED.toString());
                 execute(deleteMessage(chatId, update.getCallbackQuery().getMessage().getMessageId()));
-            } else if (button.startsWith("reject")) {
+
+            } else if (button.startsWith("reject") || button.startsWith("remove")) {
                 String[] buttonText = splitCallback(button);
                 adService.deleteAd(buttonText[1]);
                 execute(deleteMessage(chatId, update.getCallbackQuery().getMessage().getMessageId()));
@@ -161,28 +157,20 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     private List<List<InlineKeyboardButton>> createUserButtons() {
-        // Создаем кнопку, которая отвечает за создание объявлений
         InlineKeyboardButton createAd = new InlineKeyboardButton();
-        // Присваиваем кнопке текст
         createAd.setText("Создать объявление");
-        // Устанаваливаем значение, которое придет после нажатия кнопки (Обязательно! Иначе Exception)
         createAd.setCallbackData("1");
-        // Создаем кнопку, которая отвечает за показ всех объявлений
         InlineKeyboardButton showAd = new InlineKeyboardButton();
         showAd.setText("Показать объявления");
         showAd.setCallbackData("2");
-        // Создаем кнопку, которая отвечает за показ собственных сообщений объявлений
         InlineKeyboardButton myAd = new InlineKeyboardButton();
         myAd.setText("Мои объявления");
         myAd.setCallbackData("3");
-        // Создаем 2 ряда кнопок
         List<InlineKeyboardButton> firstRow = new ArrayList<>();
         List<InlineKeyboardButton> secondRow = new ArrayList<>();
-        // Раскидываем кнопки по рядам. В данном случае в первом ряду 2 кнопки, а во втором 1
         firstRow.add(createAd);
         firstRow.add(showAd);
         secondRow.add(myAd);
-        // Объеденяем кнопки в одно целое для отправки
         return new ArrayList<>(List.of(
                 firstRow,
                 secondRow
@@ -197,12 +185,13 @@ public class Bot extends TelegramLongPollingBot {
         return editMessageReplyMarkup;
     }
 
-    private InlineKeyboardMarkup createShowMyAdButton(String callback) {
+    private InlineKeyboardMarkup createShowMyAdButton(String callback, String id) {
         InlineKeyboardButton hiddenAd = new InlineKeyboardButton();
         hiddenAd.setText("Показывать");
         hiddenAd.setCallbackData(callback);
         List<InlineKeyboardButton> row = new ArrayList<>();
         row.add(hiddenAd);
+        row.add(createDeleteMyAdButton(id));
         List<List<InlineKeyboardButton>> buttonList = new ArrayList<>();
         buttonList.add(row);
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
@@ -210,12 +199,13 @@ public class Bot extends TelegramLongPollingBot {
         return markup;
     }
 
-    private InlineKeyboardMarkup createHiddenMyAdButton(String callback) {
+    private InlineKeyboardMarkup createHiddenMyAdButton(String callback, String id) {
         InlineKeyboardButton hiddenAd = new InlineKeyboardButton();
         hiddenAd.setText("Остановить показ");
         hiddenAd.setCallbackData(callback);
         List<InlineKeyboardButton> row = new ArrayList<>();
         row.add(hiddenAd);
+        row.add(createDeleteMyAdButton(id));
         List<List<InlineKeyboardButton>> buttonList = new ArrayList<>();
         buttonList.add(row);
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
@@ -233,6 +223,23 @@ public class Bot extends TelegramLongPollingBot {
         inlineKeyboards.add(thirdRow);
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(inlineKeyboards);
+        return markup;
+    }
+
+    private InlineKeyboardButton createDeleteMyAdButton(String id) {
+        InlineKeyboardButton deleteMyAdButton = new InlineKeyboardButton();
+        deleteMyAdButton.setText("Удалить");
+        deleteMyAdButton.setCallbackData("remove " + id);
+        return deleteMyAdButton;
+    }
+
+    private InlineKeyboardMarkup createSingleDeleteMyAdButton(String id) {
+        List<InlineKeyboardButton> deleteMyAddButton = new ArrayList<>();
+        deleteMyAddButton.add(createDeleteMyAdButton(id));
+        List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
+        buttons.add(deleteMyAddButton);
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        markup.setKeyboard(buttons);
         return markup;
     }
 
@@ -256,11 +263,8 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     @SneakyThrows
-    // Метод, отвечающий за вывод приветственного меню. Содержит в себе текст и 3 кнопки
     private void showMenu(String chatId) {
-        // Создаем текст приветственного сообщения
         SendMessage sendMessage = createMessage(chatId, Messages.getGreetingMessage());
-        // Проверка на администратора
         if (chatId.equals(ADMIN_CHAT_ID)) {
             sendMessage.setReplyMarkup(createAdminMenuButtons());
         } else {
@@ -268,11 +272,9 @@ public class Bot extends TelegramLongPollingBot {
             markup.setKeyboard(createUserButtons());
             sendMessage.setReplyMarkup(markup);
         }
-        // Возвращаем наше сообщение с кнопками
         execute(sendMessage);
     }
 
-    // Приватный метод для создания объекта SendMessage
     private SendMessage createMessage(String chatId, String text) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setText(text);
@@ -303,9 +305,11 @@ public class Bot extends TelegramLongPollingBot {
                         "approve " + ad.getId(), "reject " + ad.getId()));
             } else if (role.equals("MY_ADS")) {
                 if (adService.getStatusById(ad.getId()).equals(AdStatusEnums.APPROVED.toString())) {
-                    sendMessage.setReplyMarkup(createHiddenMyAdButton("hidden " + ad.getId()));
+                    sendMessage.setReplyMarkup(createHiddenMyAdButton("hidden " + ad.getId(), ad.getId()));
+                } else if (adService.getStatusById(ad.getId()).equals(AdStatusEnums.HIDDEN.toString())) {
+                    sendMessage.setReplyMarkup(createShowMyAdButton("show " + ad.getId(), ad.getId()));
                 } else {
-                    sendMessage.setReplyMarkup(createShowMyAdButton("show " + ad.getId()));
+                    sendMessage.setReplyMarkup(createSingleDeleteMyAdButton(chatId));
                 }
             }
             execute(sendMessage);
@@ -358,7 +362,13 @@ public class Bot extends TelegramLongPollingBot {
 
     @SneakyThrows
     private void warnAboutCreationAd(String chatId) {
-        execute(createMessage(chatId, "Объявление успешно создано и отправлено на рассмотрение администратору"));
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        inlineKeyboardMarkup.setKeyboard(createUserButtons());
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setReplyMarkup(inlineKeyboardMarkup);
+        sendMessage.setChatId(chatId);
+        sendMessage.setText("Объявление успешно создано и отправлено на рассмотрение администратору");
+        execute(sendMessage);
     }
 
     @Override
