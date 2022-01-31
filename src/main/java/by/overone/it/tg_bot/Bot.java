@@ -133,9 +133,6 @@ public class Bot extends TelegramLongPollingBot {
                 execute(deleteMessage(chatId, update.getCallbackQuery().getMessage().getMessageId()));
             } else if (button.startsWith("reject")) {
                 String[] buttonTextList = button.split("\\s");
-                DeleteMessage deleteMessage = new DeleteMessage();
-                deleteMessage.setChatId(chatId);
-                deleteMessage.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
                 adService.deleteAd(buttonTextList[1]);
                 execute(deleteMessage(chatId, update.getCallbackQuery().getMessage().getMessageId()));
             }
