@@ -48,17 +48,6 @@ public class AdService {
         adRepository.updateAdPrice(id, price);
     }
 
-    @SneakyThrows
-    public void updatePhoto(String id, File photo) {
-        byte[] bPhoto = new byte[(int) photo.length()];
-
-        FileInputStream fileInputStream = new FileInputStream(photo);
-        fileInputStream.read(bPhoto);
-        fileInputStream.close();
-
-        adRepository.updateAdPhoto(id, bPhoto);
-    }
-
     public void updateDescription(String id, String description) {
         adRepository.updateAdDescription(id, description);
     }
