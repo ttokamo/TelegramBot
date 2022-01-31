@@ -24,6 +24,10 @@ public class AdService {
         return adRepository.findAll();
     }
 
+    public String getStatusById(String id) {
+        return adRepository.getStatusById(id);
+    }
+
     public void updateBrand(String id, String brand) {
         adRepository.updateAdBrand(id, brand);
     }

@@ -1,7 +1,6 @@
 package by.overone.it.repository;
 
 import by.overone.it.entity.Ad;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -9,8 +8,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import javax.transaction.Transactional;
-import java.io.File;
-import java.io.Serializable;
 import java.util.List;
 
 @Repository
@@ -55,6 +52,9 @@ public interface AdRepository extends CrudRepository<Ad, String> {
     @Modifying
     @Query("update Ad set status =:status where id =:id")
     void updateAdStatus(@Param("id") String id, @Param("status") String status);
+
+    @Query("select status from Ad where id =:id")
+    String getStatusById(@Param("id") String id);
 
     @Query("from Ad where status =:status")
     List<Ad> getByStatus(@Param("status") String status);
