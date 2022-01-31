@@ -5,8 +5,6 @@ import by.overone.it.repository.BotStatusRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Service
 public class BotStatusService {
 
@@ -21,8 +19,8 @@ public class BotStatusService {
         repository.deleteBotStatus(chatId);
     }
 
-    public Optional<BotStatus> findById(String chatId) {
-        return repository.findById(chatId);
+    public BotStatus findById(String chatId) {
+        return repository.getById(chatId);
     }
 
     public BotStatus findFirstByChatId(String chatId) {

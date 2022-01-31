@@ -23,5 +23,8 @@ public interface BotStatusRepository extends CrudRepository<BotStatus, String> {
     @Query("delete BotStatus where chatId =:chatId")
     void deleteBotStatus(@Param("chatId") String chatId);
 
+    @Query("from BotStatus where chatId =:chatId")
+    BotStatus getById(@Param("chatId") String chatId);
+
     BotStatus findFirstByChatId(String chatId);
 }

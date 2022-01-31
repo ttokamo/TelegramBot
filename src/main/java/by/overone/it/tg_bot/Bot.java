@@ -99,6 +99,11 @@ public class Bot extends TelegramLongPollingBot {
             // Проверяем полученное значение кнопки
             String button = update.getCallbackQuery().getData();
             if (button.startsWith("1")) {
+                botStatus = botStatusService.findById(chatId);
+                if (botStatus != null) {
+                    botStatusService.deleteBotStatus(chatId);
+                    adService.deleteAd(ad.getId());
+                }
                 // Создаем объект статуса бота
                 botStatus = new BotStatus();
                 ad = new Ad();
