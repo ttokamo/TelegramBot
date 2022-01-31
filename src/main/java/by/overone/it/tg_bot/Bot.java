@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -31,6 +32,7 @@ public class Bot extends TelegramLongPollingBot {
     private final String BOT_TOKEN = "5153744354:AAFufvHy_I6mTRVLQ8slD0ge8s_JA7oF6Og";
     private final String ADMIN_CHAT_ID = "743321260";
 
+    @SneakyThrows
     @Override
     // Метод, который вызывается при запросе пользователя
     public synchronized void onUpdateReceived(Update update) {
@@ -128,9 +130,14 @@ public class Bot extends TelegramLongPollingBot {
             } else if (button.startsWith("approve")) {
                 String[] buttonTextList = button.split("\\s");
                 adService.updateStatus(buttonTextList[1], AdStatusEnums.APPROVED.toString());
+                execute(deleteMessage(chatId, update.getCallbackQuery().getMessage().getMessageId()));
             } else if (button.startsWith("reject")) {
                 String[] buttonTextList = button.split("\\s");
+                DeleteMessage deleteMessage = new DeleteMessage();
+                deleteMessage.setChatId(chatId);
+                deleteMessage.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
                 adService.deleteAd(buttonTextList[1]);
+                execute(deleteMessage(chatId, update.getCallbackQuery().getMessage().getMessageId()));
             }
         }
     }
@@ -219,6 +226,10 @@ public class Bot extends TelegramLongPollingBot {
         sendMessage.setText(text);
         sendMessage.setChatId(chatId);
         return sendMessage;
+    }
+
+    private DeleteMessage deleteMessage(String chatId, Integer messageId) {
+        return new DeleteMessage(chatId, messageId);
     }
 
     @SneakyThrows
